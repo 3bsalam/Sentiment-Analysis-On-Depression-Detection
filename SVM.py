@@ -4,8 +4,6 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 from scipy import sparse
-from gensim import corpora
-from gensim.models import Word2Vec
 import re
 from collections import Counter
 import numpy as np
@@ -16,6 +14,8 @@ import csv
 import time
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import StandardScaler
+
+
 
 def del_Punctutation(s):
     return re.sub("[\.\t\,\:;\(\)\_\.!\@\?\&\--]", "", s, 0, 0)
@@ -61,23 +61,22 @@ with open('SentimentAnalysisDataset100000.csv', 'r', encoding="latin-1") as csvf
     for row in readCSV:
         TrainingSentences.append(row[2])
         TrainingLabels.append(row[1])
-TestingSentences = TrainingSentences[99000:]
-TestingLabels = TrainingLabels[99900:]
+TestingSentences = TrainingSentences[90000:]
+TestingLabels = TrainingLabels[90000:]
 
 TrainingSentences = get_tokens_list(TrainingSentences)
 #TrainingSentences,TrainingLabels = filter(TrainingSentences,TrainingLabels)
 
-originalSentences = TrainingSentences
-originalLabels = TrainingLabels
-TrainingSentences = originalSentences[1:1000]
-TrainingLabels = originalLabels[1:1000]
+
+TrainingSentences = TrainingSentences[1:8999]
+TrainingLabels = TrainingLabels[1:8999]
+
 print("2) Feature Extracting ...")
 vectorizer = TfidfVectorizer()
 
 TrainingSentences = vectorizer.fit_transform(TrainingSentences)
 
-print("type:",type(TrainingSentences))
-clf = svm.SVC(kernel='rbf')
+clf = svm.SVC(kernel='sigmoid', probability=True, max_iter=1, coef0=1.0, gamma=.1, C=10000)
 print("3) Training and Fitting ...")
 clf.fit(TrainingSentences, TrainingLabels)
 
@@ -89,8 +88,7 @@ t = vectorizer.transform(["I love you"])
 
 correct = 0
 
-for i in range(0, len(TestingSentences)):
-    print(TrainingSentences[i],i,TestingSentences[i])
+for i in range(0, len(TestingLabels)):
     currentCorpse = [TestingSentences[i]]
     currentCorpse = vectorizer.transform(currentCorpse)
     predict = clf.predict(currentCorpse)
